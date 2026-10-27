@@ -123,7 +123,7 @@ export default function App() {
       )}
 
       {showDiag && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/70 p-4">
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-label="Diagnóstico de nivel">
           <Diagnostic
             onFinish={(level) => {
               api.setState((s) => ({ ...s, diagnosticDone: true, diagnosticLevel: level }));

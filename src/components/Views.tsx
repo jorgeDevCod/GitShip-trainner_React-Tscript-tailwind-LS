@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { applyCommand, baseState } from '../lib/gitSim';
 import { CHALLENGES, DIAGNOSTIC, MENTOR_RULES, MODULES } from '../lib/curriculum';
 import { masteryLevel } from '../lib/store';
@@ -400,23 +400,77 @@ export function ProgressView({ api, onReset, next, onContinue, onGoReview }: {
 }
 
 /* ─── Diagnóstico inicial ─── */
+const LEVELS = [
+  { max: 2, label: 'Principiante 🌱' },
+  { max: 5, label: 'Intermedio 🌿' },
+  { max: Infinity, label: 'Avanzado 🚀' },
+];
+const levelFor = (score: number) => LEVELS.find((l) => score <= l.max)!.label;
+
 export function Diagnostic({ onFinish }: { onFinish: (level: string) => void }) {
-  const [i, setI] = useState(0);
-  const [score, setScore] = useState(0);
-  const q = DIAGNOSTIC[i];
-  const answer = (idx: number) => {
-    const s = score + (idx === q.answer ? 1 : 0);
-    if (i + 1 >= DIAGNOSTIC.length) {
-      onFinish(s <= 1 ? 'Principiante 🌱' : s <= 3 ? 'Intermedio 🌿' : 'Avanzado 🚀');
-    } else { setScore(s); setI(i + 1); }
+  const [answers, setAnswers] = useState<number[]>([]);
+  const lockRef = useRef(0);
+  const done = answers.length === DIAGNOSTIC.length;
+  const score = answers.reduce((acc, a, idx) => acc + (a === DIAGNOSTIC[idx].answer ? 1 : 0), 0);
+  const level = levelFor(score);
+
+  // ignora clics repetidos por ~300 ms: evita responder sin querer la pregunta siguiente
+  const pick = (idx: number) => {
+    const now = Date.now();
+    if (now - lockRef.current < 300) return;
+    lockRef.current = now;
+    setAnswers((prev) => (prev.length >= DIAGNOSTIC.length ? prev : [...prev, idx]));
   };
+
+  if (done) {
+    return (
+      <div className="pop mx-auto flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl border border-zinc-700 bg-zinc-900">
+        <div className="overflow-y-auto p-6 pb-4">
+          <div className="text-sm text-zinc-400">Resultado del diagnóstico</div>
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+            <div className="text-2xl font-extrabold text-white">{score} / {DIAGNOSTIC.length} correctas</div>
+            <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs text-zinc-300">{level}</span>
+          </div>
+          <div className="mt-4 space-y-2">
+            {DIAGNOSTIC.map((item, idx) => {
+              const ok = answers[idx] === item.answer;
+              return (
+                <div key={item.q} className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-3">
+                  <div className="flex items-start gap-2 text-sm">
+                    <span className={ok ? 'text-emerald-300' : 'text-red-300'}>{ok ? '✓' : '✗'}</span>
+                    <span className="min-w-0 flex-1 text-zinc-200">{item.q}</span>
+                  </div>
+                  <div className="mt-1 pl-6 text-xs text-zinc-400">
+                    Tu respuesta: <span className={ok ? 'text-zinc-300' : 'text-red-300/90'}>{item.options[answers[idx]]}</span>
+                  </div>
+                  {!ok && (
+                    <div className="mt-1 pl-6 text-xs">
+                      <div className="text-zinc-300">Correcta: <span className="font-mono text-zinc-100">{item.options[item.answer]}</span></div>
+                      <div className="mt-0.5 text-zinc-500">{item.why}</div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="border-t border-zinc-800 p-4">
+          <button onClick={() => onFinish(level)} className="w-full rounded-xl bg-zinc-100 px-5 py-2.5 font-bold text-zinc-900 hover:bg-white">
+            Comenzar entrenamiento →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const q = DIAGNOSTIC[answers.length];
   return (
     <div className="pop mx-auto max-w-lg rounded-2xl border border-zinc-700 bg-zinc-900 p-6">
-      <div className="text-sm text-zinc-400">Diagnóstico {i + 1}/{DIAGNOSTIC.length}</div>
+      <div className="text-sm text-zinc-400">Diagnóstico {answers.length + 1}/{DIAGNOSTIC.length}</div>
       <h3 className="mt-1 text-lg font-bold text-white">{q.q}</h3>
       <div className="mt-3 grid gap-2">
         {q.options.map((o, idx) => (
-          <button key={o} onClick={() => answer(idx)} className="rounded-xl border border-zinc-700 px-3 py-2.5 text-left font-mono text-sm text-zinc-100 hover:border-zinc-400 hover:bg-zinc-800">{o}</button>
+          <button key={o} onClick={() => pick(idx)} className="rounded-xl border border-zinc-700 px-3 py-2.5 text-left font-mono text-sm text-zinc-100 hover:border-zinc-400 hover:bg-zinc-800">{o}</button>
         ))}
       </div>
     </div>

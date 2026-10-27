@@ -1147,24 +1147,28 @@ export const DIAGNOSTIC = [
     options: ['git init', 'git push', 'git merge', 'git clone'],
     answer: 0,
     concept: 'git init',
+    why: 'init crea el repositorio local (.git); clone solo descarga uno que ya existe.',
   },
   {
     q: '¿Qué comando te dice en qué estado está cada archivo?',
     options: ['git log', 'git status', 'git diff --staged', 'git show'],
     answer: 1,
     concept: 'git status',
+    why: 'status muestra las tres zonas y el estado de cada archivo; log, diff y show no dan esa vista general.',
   },
   {
     q: 'Terminaste una funcionalidad en tu rama. ¿Cómo la integras a main?',
     options: ['git stash', 'git merge feature/x', 'git fetch', 'git reset --hard'],
     answer: 1,
     concept: 'git merge',
+    why: 'merge integra el trabajo de la rama en main; stash y fetch no fusionan nada y reset descarta.',
   },
   {
     q: 'Subiste un commit roto a main y tu equipo ya hizo pull. ¿Qué haces?',
     options: ['git reset --hard HEAD~1 y push --force', 'git revert HEAD', 'Borrar el repo y clonar', 'git restore --staged .'],
     answer: 1,
     concept: 'git revert vs reset',
+    why: 'En historial compartido se avanza con revert; reset --hard reescribe commits que el equipo ya tiene.',
   },
   {
     q: '¿Qué diferencia hay entre git fetch y git pull?',
@@ -1176,24 +1180,28 @@ export const DIAGNOSTIC = [
     ],
     answer: 1,
     concept: 'git pull vs fetch',
+    why: 'fetch solo descarga para observar; pull equivale a fetch + merge e integra los cambios.',
   },
   {
     q: 'Haces push y la plataforma corre build + tests automáticamente. ¿Qué es eso?',
     options: ['Un virus en el repo', 'El pipeline de CI/CD', 'Un backup de GitHub', 'El antivirus del servidor'],
     answer: 1,
     concept: 'push + CI',
+    why: 'Cada push dispara el pipeline de integración y entrega continua (CI/CD).',
   },
   {
     q: 'Quieres marcar el commit actual como la versión 1.2.0 lista para producción. ¿Qué usas?',
     options: ['git branch v1.2.0', 'git tag v1.2.0', 'git stash v1.2.0', 'git clone v1.2.0'],
     answer: 1,
     concept: 'git tag',
+    why: 'Los tags marcan versiones concretas del historial; branch crea una línea de trabajo, no una versión.',
   },
   {
     q: 'Quieres estandarizar los mensajes de commit de tu equipo. ¿Qué formato se usa habitualmente?',
     options: ['Cualquier frase libre', 'Conventional Commits: tipo(alcance): descripción', 'Solo el número de ticket', 'Fecha y nombre del autor'],
     answer: 1,
     concept: 'convenciones de commits',
+    why: 'Conventional Commits estructura el mensaje para historial legible y changelogs automáticos.',
   },
 ];
 
