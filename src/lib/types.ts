@@ -110,5 +110,9 @@ export interface ProgressState {
   minutes: number;
   diagnosticDone: boolean;
   diagnosticLevel: string;
+  /** conceptos débiles detectados en el diagnóstico: se practican primero */
+  focusConcepts: string[];
+  /** true si el usuario omitió el diagnóstico (ruta base desde cero) */
+  diagnosticSkipped: boolean;
   startedAt: string;
 }

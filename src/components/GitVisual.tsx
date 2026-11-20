@@ -98,7 +98,7 @@ export default function GitVisual({ state, compact = false }: { state: SimState;
       {state.conflict && (
         <div className="pop rounded-xl border border-red-700/60 bg-red-950/40 p-3">
           <div className="mb-1 text-sm font-semibold text-red-200">⚠️ Conflicto en {state.conflict.file}</div>
-          <pre className="thin-scroll overflow-x-auto rounded bg-black/50 p-2 font-mono text-xs leading-relaxed text-zinc-200">{`<<<<<<< HEAD\n${state.conflict.headContent}\n=======\n${state.conflict.incomingContent}\n>>>>>>> ${state.conflict.incomingBranch}`}</pre>
+          <pre className="thin-scroll overflow-x-auto rounded bg-zinc-950/60 p-2 font-mono text-xs leading-relaxed text-zinc-200">{`<<<<<<< HEAD\n${state.conflict.headContent}\n=======\n${state.conflict.incomingContent}\n>>>>>>> ${state.conflict.incomingBranch}`}</pre>
         </div>
       )}
       {maxGraph === 0 && <span className="hidden" />}

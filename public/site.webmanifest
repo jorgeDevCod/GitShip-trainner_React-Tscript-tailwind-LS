@@ -1,6 +1,6 @@
 {
-  "name": "GitShip — De git init al deploy",
-  "short_name": "GitShip",
+  "name": "GitTrainer",
+  "short_name": "GitTrainer",
   "description": "Entrenador practico de Git, remotos, CI/CD y DevOps frontend.",
   "start_url": ".",
   "display": "standalone",

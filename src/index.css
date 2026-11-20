@@ -3,6 +3,50 @@
 @theme {
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --color-app: var(--app-bg);
+  --color-terminal: var(--terminal-bg);
+}
+
+:root {
+  color-scheme: dark;
+  --app-bg: #0d1117;
+  --terminal-bg: #0d1117;
+  --fg: #e6eaf2;
+}
+
+html.light {
+  color-scheme: light;
+  --app-bg: #f7f9fc;
+  --terminal-bg: #ffffff;
+  --fg: #101828;
+
+  /* Superficies: se invierte la escala de grises */
+  --color-white: #0b1220;
+  --color-zinc-950: #eef2f7;
+  --color-zinc-900: #ffffff;
+  --color-zinc-800: #e5eaf1;
+  --color-zinc-700: #cbd4e0;
+  --color-zinc-600: #aab6c6;
+  --color-zinc-500: #6b7686;
+  --color-zinc-400: #5b6676;
+  --color-zinc-300: #414c5c;
+  --color-zinc-200: #2a3441;
+  --color-zinc-100: #121a26;
+
+  /* Acentos legibles sobre fondo claro */
+  --color-emerald-300: #0c7a4d;
+  --color-emerald-400: #0a6b43;
+  --color-red-300: #b42318;
+  --color-red-200: #912018;
+  --color-red-400: #b42318;
+  --color-amber-300: #8a5a00;
+  --color-amber-200: #7a4f00;
+  --color-amber-100: #5f3d00;
+  --color-orange-300: #9a4a00;
+  --color-amber-950: #fdf6e3;
+  --color-amber-900: #f6e3b6;
+  --color-red-950: #fdecea;
+  --color-emerald-950: #e9f7ef;
 }
 
 html {
@@ -10,16 +54,22 @@ html {
 }
 
 body {
-  background: #0d1117;
-  color: #e6eaf2;
+  background: var(--app-bg);
+  color: var(--fg);
   -webkit-font-smoothing: antialiased;
+}
+
+/* transición suave al cambiar de tema (se activa solo durante el toggle) */
+html.theme-transition,
+html.theme-transition * {
+  transition: background-color 0.28s ease, border-color 0.28s ease, color 0.28s ease, fill 0.28s ease, stroke 0.28s ease !important;
 }
 
 /* títulos fluidos */
 .fluid-h1 { font-size: clamp(1.5rem, 4vw, 2.25rem); }
 .fluid-h2 { font-size: clamp(1.1rem, 2.5vw, 1.35rem); }
 
-/* subtle card entrance */
+/* entrada sutil de tarjetas */
 @keyframes rise {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -32,7 +82,8 @@ body {
 }
 .pop { animation: pop 0.22s ease both; }
 
-/* code scrollbars */
+/* scrollbars */
 .thin-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
 .thin-scroll::-webkit-scrollbar-thumb { background: #2b3550; border-radius: 8px; }
 .thin-scroll::-webkit-scrollbar-track { background: transparent; }
+html.light .thin-scroll::-webkit-scrollbar-thumb { background: #c3ccd8; }

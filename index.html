@@ -3,12 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d1117" />
+    <script>
+      // aplica el tema guardado antes del primer pintado (evita destello)
+      (function () {
+        try {
+          var saved = localStorage.getItem('gitship-theme');
+          var light = saved ? saved === 'light' : window.matchMedia('(prefers-color-scheme: light)').matches;
+          if (light) document.documentElement.classList.add('light');
+          document.documentElement.style.colorScheme = light ? 'light' : 'dark';
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (m) m.setAttribute('content', light ? '#f7f9fc' : '#0d1117');
+        } catch (e) {}
+      })();
+    </script>
+    <meta name="application-name" content="GitTrainer" />
+    <meta name="apple-mobile-web-app-title" content="GitTrainer" />
     <title>GitShip — De git init a experto practicando</title>
     <meta name="description" content="Aprende Git, GitHub, GitLab, Bitbucket, CI/CD y DevOps frontend con 31 retos reales y simulador visual. De git init al deploy, practicando paso a paso." />
     <meta name="keywords" content="aprender git, curso git practico, github, gitlab, bitbucket, github actions, ci cd, devops frontend, git push, pull request, merge request, rebase, simulador git" />
     <meta name="author" content="GitShip" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
-    <meta name="theme-color" content="#0d1117" />
     <link rel="canonical" href="https://git-trainner.netlify.app/" />
 
     <!-- Open Graph (Facebook, LinkedIn, WhatsApp, Telegram) -->

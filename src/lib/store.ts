@@ -17,6 +17,8 @@ function fresh(): ProgressState {
     minutes: 0,
     diagnosticDone: false,
     diagnosticLevel: 'Sin diagnosticar',
+    focusConcepts: [],
+    diagnosticSkipped: false,
     startedAt: new Date().toISOString(),
   };
 }

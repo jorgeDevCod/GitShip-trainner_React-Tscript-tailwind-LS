@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import ChallengePlayer from './components/ChallengePlayer';
+import ThemeToggle from './components/ThemeToggle';
 import { Dashboard, Diagnostic, LabView, MentorMode, PathView, ProgressView, ReviewView } from './components/Views';
 import { CHALLENGES, DIAGNOSTIC } from './lib/curriculum';
 import { useProgress } from './lib/store';
@@ -21,6 +22,14 @@ const NAV: { id: View; label: string; icon: string }[] = [
 const MOBILE_MAIN: View[] = ['inicio', 'ruta', 'practica', 'lab'];
 const MOBILE_MORE: View[] = ['mentor', 'repaso', 'progreso'];
 
+/** Reordena los retos: primero los conceptos débiles del diagnóstico */
+function orderByFocus(list: Challenge[], focus: string[]): Challenge[] {
+  if (focus.length === 0) return list;
+  const weak = list.filter((c) => focus.includes(c.concept));
+  if (weak.length === 0) return list;
+  return [...weak, ...list.filter((c) => !focus.includes(c.concept))];
+}
+
 export default function App() {
   const api = useProgress();
   const [view, setView] = useState<View>('inicio');
@@ -31,10 +40,11 @@ export default function App() {
 
   const current = queue[qi];
 
-  const startPractice = (list?: Challenge[]) => {
-    // adaptativo: primero no resueltos; si el usuario falla un concepto, se reinyecta variante
-    const pending = (list ?? CHALLENGES).filter((c) => !api.state.completed[c.id]?.solved);
-    const ordered = pending.length > 0 ? pending : (list ?? CHALLENGES);
+  const startPractice = (list?: Challenge[], focus: string[] = api.state.focusConcepts) => {
+    // adaptativo: primero no resueltos, priorizando los conceptos débiles del diagnóstico
+    const base = list ?? CHALLENGES;
+    const pending = base.filter((c) => !api.state.completed[c.id]?.solved);
+    const ordered = orderByFocus(pending.length > 0 ? pending : base, focus);
     setQueue(ordered);
     setQi(0);
     setView('practica');
@@ -81,23 +91,26 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-zinc-100">
+    <div className="min-h-screen bg-app text-zinc-100">
       {/* header */}
-      <header className="sticky top-0 z-20 border-b border-zinc-800/80 bg-[#0d1117]/90 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-zinc-800/80 bg-app/90 backdrop-blur">
         <div className="mx-auto flex max-w-[1400px] items-center gap-2 px-4 py-2.5 sm:px-6 lg:px-8">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-800 text-base">🚀</span>
           <span className="font-extrabold text-white">GitShip</span>
           <span className="hidden rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400 sm:inline">{api.pct}%</span>
-          <div className="ml-auto hidden items-center gap-1 md:flex">
-            {NAV.map((n) => (
-              <button
-                key={n.id}
-                onClick={() => setView(n.id)}
-                className={`rounded-lg px-2.5 py-1.5 text-[13px] ${view === n.id ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-white'}`}
-              >
-                {n.icon} {n.label}
-              </button>
-            ))}
+          <div className="ml-auto flex items-center gap-2">
+            <div className="hidden items-center gap-1 md:flex">
+              {NAV.map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => setView(n.id)}
+                  className={`rounded-lg px-2.5 py-1.5 text-[13px] ${view === n.id ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-white'}`}
+                >
+                  {n.icon} {n.label}
+                </button>
+              ))}
+            </div>
+            <ThemeToggle />
           </div>
         </div>
         {/* barra de progreso fina */}
@@ -125,10 +138,15 @@ export default function App() {
       {showDiag && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-label="Diagnóstico de nivel">
           <Diagnostic
-            onFinish={(level) => {
-              api.setState((s) => ({ ...s, diagnosticDone: true, diagnosticLevel: level }));
+            onFinish={(level, focus) => {
+              api.setState((s) => ({ ...s, diagnosticDone: true, diagnosticLevel: level, focusConcepts: focus, diagnosticSkipped: false }));
               setShowDiag(false);
-              startPractice();
+              startPractice(undefined, focus);
+            }}
+            onSkip={() => {
+              api.setState((s) => ({ ...s, diagnosticDone: true, diagnosticLevel: 'Ruta desde cero', focusConcepts: [], diagnosticSkipped: true }));
+              setShowDiag(false);
+              startPractice(undefined, []);
             }}
           />
         </div>
@@ -136,7 +154,9 @@ export default function App() {
 
       {/* contenido */}
       <main className="mx-auto max-w-[1400px] px-4 pb-28 pt-5 sm:px-6 md:pb-12 lg:px-8">
-        {view === 'inicio' && <Dashboard api={api} onContinue={continueTraining} onGo={(v) => setView(v as View)} />}
+        {view === 'inicio' && (
+          <Dashboard api={api} onContinue={continueTraining} onGo={(v) => setView(v as View)} onDiagnostic={() => setShowDiag(true)} />
+        )}
         {view === 'ruta' && <PathView api={api} onPlay={playSingle} />}
         {view === 'practica' && (
           current ? (
@@ -181,7 +201,7 @@ export default function App() {
       )}
 
       {/* nav móvil */}
-      <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-zinc-800 bg-[#0d1117]/95 backdrop-blur md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-zinc-800 bg-app/95 backdrop-blur md:hidden">
         <div className="grid grid-cols-5">
           {MOBILE_MAIN.map((id) => {
             const n = NAV.find((x) => x.id === id)!;

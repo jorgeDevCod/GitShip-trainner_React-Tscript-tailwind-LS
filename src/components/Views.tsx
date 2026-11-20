@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { applyCommand, baseState } from '../lib/gitSim';
 import { CHALLENGES, DIAGNOSTIC, MENTOR_RULES, MODULES } from '../lib/curriculum';
 import { masteryLevel } from '../lib/store';
@@ -7,7 +7,7 @@ import type { Challenge, SimState } from '../lib/types';
 import GitVisual from './GitVisual';
 
 /* ─── Dashboard ─── */
-export function Dashboard({ api, onContinue, onGo }: { api: ProgressApi; onContinue: () => void; onGo: (v: string) => void }) {
+export function Dashboard({ api, onContinue, onGo, onDiagnostic }: { api: ProgressApi; onContinue: () => void; onGo: (v: string) => void; onDiagnostic: () => void }) {
   const { pct, solvedCount, totalCount, dominated, state } = api;
   const next = useMemo(() => CHALLENGES.find((c) => !api.state.completed[c.id]?.solved), [api.state.completed]);
   return (
@@ -31,9 +31,24 @@ export function Dashboard({ api, onContinue, onGo }: { api: ProgressApi; onConti
           {next && <span className="text-sm text-zinc-400">Próximo objetivo: <b className="text-zinc-200">{next.title}</b> ({next.command})</span>}
         </div>
       </div>
+
+      {(state.focusConcepts.length > 0 || state.diagnosticSkipped) && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm">
+          {state.focusConcepts.length > 0 ? (
+            <span className="text-zinc-300">
+              🎯 Ruta adaptada · priorizando: <b className="text-white">{state.focusConcepts.join(' · ')}</b>
+            </span>
+          ) : (
+            <span className="text-zinc-300">📚 Ruta base desde cero · sin diagnóstico previo</span>
+          )}
+          <button onClick={onDiagnostic} className="shrink-0 rounded-lg border border-zinc-700 px-3 py-1.5 text-xs text-zinc-200 hover:border-zinc-400 hover:text-white">
+            {state.focusConcepts.length > 0 ? 'Rehacer diagnóstico' : 'Hacer diagnóstico'} →
+          </button>
+        </div>
+      )}
       <div className="grid gap-3 sm:grid-cols-3">
         {[
-          { t: 'Ruta de aprendizaje', d: '6 módulos progresivos', v: 'ruta', e: '🗺️' },
+          { t: 'Ruta de aprendizaje', d: `${MODULES.filter((m) => !m.comingSoon).length} módulos progresivos`, v: 'ruta', e: '🗺️' },
           { t: 'Laboratorio libre', d: 'Repo + objetivo, sin pasos', v: 'lab', e: '🧪' },
           { t: 'No sé qué comando usar', d: 'Describe tu problema', v: 'mentor', e: '🧠' },
         ].map((c) => (
@@ -95,7 +110,7 @@ export function PathView({ api, onPlay }: { api: ProgressApi; onPlay: (c: Challe
                       <div className="font-mono text-[13px] font-bold text-zinc-100">{l.command}</div>
                       <div className="mt-0.5 text-[13px] text-zinc-300">{l.what}</div>
                       <div className="text-[12px] text-zinc-500">Cuándo: {l.when}</div>
-                      <div className="mt-1 rounded bg-black/40 px-2 py-1 font-mono text-[12px] text-emerald-300">{l.example}</div>
+                      <div className="mt-1 rounded bg-zinc-950/50 px-2 py-1 font-mono text-[12px] text-emerald-300">{l.example}</div>
                     </div>
                   ))}
                 </div>
@@ -106,7 +121,7 @@ export function PathView({ api, onPlay }: { api: ProgressApi; onPlay: (c: Challe
                     <button
                       key={c.id}
                       onClick={() => onPlay(c, cs)}
-                      className="flex w-full items-center gap-3 rounded-xl border border-zinc-700/70 bg-black/30 p-3 text-left hover:border-emerald-600"
+                      className="flex w-full items-center gap-3 rounded-xl border border-zinc-700/70 bg-zinc-950/40 p-3 text-left hover:border-emerald-600"
                     >
                       <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${rec?.solved ? 'bg-zinc-100 text-zinc-900' : 'bg-zinc-800 text-zinc-300'}`}>
                         {rec?.solved ? '✓' : i + 1}
@@ -148,7 +163,7 @@ export function MentorMode() {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') analyze(); }}
             placeholder='Ej. "quiero deshacer los cambios de un archivo pero todavía no hice commit"'
-            className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-black/40 px-3 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-400"
+            className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-950/50 px-3 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-zinc-400"
           />
           <button onClick={analyze} className="shrink-0 rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-bold text-zinc-900 hover:bg-white">Analizar</button>
         </div>
@@ -174,7 +189,7 @@ export function MentorMode() {
             ))}
           </div>
           {step.picked && (
-            <div className="pop rounded-xl bg-black/40 p-3 text-sm leading-relaxed text-zinc-200">
+            <div className="pop rounded-xl bg-zinc-950/50 p-3 text-sm leading-relaxed text-zinc-200">
               <div>💡 <b>Pista:</b> {step.rule.hint}</div>
               <div className="mt-2 font-mono text-[13px] text-zinc-100">Solución: {step.rule.solution}</div>
               <div className="mt-1 text-xs text-zinc-500">Regla del mentor: primero piensas tú, después te ayudo, al final explico. Practícalo en el reto correspondiente de la Ruta. →</div>
@@ -238,7 +253,7 @@ export function LabView({ api }: { api: ProgressApi }) {
         </div>
       </div>
       <div className="grid gap-4 xl:grid-cols-[1.05fr_1fr]">
-        <div className="rounded-2xl border border-zinc-800 bg-[#0d1117]">
+        <div className="rounded-2xl border border-zinc-800 bg-terminal">
           <div className="thin-scroll h-[45vh] min-h-[240px] space-y-1 overflow-y-auto p-4 font-mono text-[13px]">
             {log.map((l, i) => <pre key={i} className={`whitespace-pre-wrap ${l.startsWith('$') ? 'text-zinc-100' : 'text-zinc-400'}`}>{l}</pre>)}
           </div>
@@ -407,20 +422,43 @@ const LEVELS = [
 ];
 const levelFor = (score: number) => LEVELS.find((l) => score <= l.max)!.label;
 
-export function Diagnostic({ onFinish }: { onFinish: (level: string) => void }) {
+export function Diagnostic({ onFinish, onSkip }: { onFinish: (level: string, focus: string[]) => void; onSkip: () => void }) {
   const [answers, setAnswers] = useState<number[]>([]);
+  const [ordering, setOrdering] = useState(false);
   const lockRef = useRef(0);
   const done = answers.length === DIAGNOSTIC.length;
   const score = answers.reduce((acc, a, idx) => acc + (a === DIAGNOSTIC[idx].answer ? 1 : 0), 0);
   const level = levelFor(score);
+  // conceptos fallados: guiarán el orden de la ruta
+  const focus = DIAGNOSTIC.filter((item, idx) => answers[idx] !== item.answer).map((item) => item.concept);
+
+  // tras responder, muestra un breve "ordenando" antes de los resultados
+  useEffect(() => {
+    if (!ordering) return;
+    const t = window.setTimeout(() => setOrdering(false), 900);
+    return () => window.clearTimeout(t);
+  }, [ordering]);
 
   // ignora clics repetidos por ~300 ms: evita responder sin querer la pregunta siguiente
   const pick = (idx: number) => {
     const now = Date.now();
     if (now - lockRef.current < 300) return;
     lockRef.current = now;
-    setAnswers((prev) => (prev.length >= DIAGNOSTIC.length ? prev : [...prev, idx]));
+    if (answers.length >= DIAGNOSTIC.length) return;
+    const next = [...answers, idx];
+    setAnswers(next);
+    if (next.length === DIAGNOSTIC.length) setOrdering(true);
   };
+
+  if (done && ordering) {
+    return (
+      <div className="pop mx-auto w-full max-w-lg rounded-2xl border border-zinc-700 bg-zinc-900 p-8 text-center" role="status" aria-live="polite">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-zinc-300" />
+        <div className="mt-4 font-semibold text-white">Analizando tus respuestas…</div>
+        <div className="mt-1 text-sm text-zinc-400">Ordenando tu ruta según cómo respondiste.</div>
+      </div>
+    );
+  }
 
   if (done) {
     return (
@@ -430,6 +468,13 @@ export function Diagnostic({ onFinish }: { onFinish: (level: string) => void }) 
           <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
             <div className="text-2xl font-extrabold text-white">{score} / {DIAGNOSTIC.length} correctas</div>
             <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs text-zinc-300">{level}</span>
+          </div>
+          <div className="mt-3 rounded-xl border border-zinc-800 bg-zinc-950/40 px-3 py-2 text-xs text-zinc-400">
+            {focus.length > 0 ? (
+              <>Tu ruta priorizará: <b className="text-zinc-200">{focus.join(' · ')}</b></>
+            ) : (
+              <>Sin puntos débiles detectados: avanzarás directo al contenido nuevo.</>
+            )}
           </div>
           <div className="mt-4 space-y-2">
             {DIAGNOSTIC.map((item, idx) => {
@@ -455,7 +500,7 @@ export function Diagnostic({ onFinish }: { onFinish: (level: string) => void }) 
           </div>
         </div>
         <div className="border-t border-zinc-800 p-4">
-          <button onClick={() => onFinish(level)} className="w-full rounded-xl bg-zinc-100 px-5 py-2.5 font-bold text-zinc-900 hover:bg-white">
+          <button onClick={() => onFinish(level, focus)} className="w-full rounded-xl bg-zinc-100 px-5 py-2.5 font-bold text-zinc-900 hover:bg-white">
             Comenzar entrenamiento →
           </button>
         </div>
@@ -473,6 +518,9 @@ export function Diagnostic({ onFinish }: { onFinish: (level: string) => void }) 
           <button key={o} onClick={() => pick(idx)} className="rounded-xl border border-zinc-700 px-3 py-2.5 text-left font-mono text-sm text-zinc-100 hover:border-zinc-400 hover:bg-zinc-800">{o}</button>
         ))}
       </div>
+      <button onClick={onSkip} className="mt-3 w-full text-center text-xs text-zinc-500 underline underline-offset-2 hover:text-zinc-300">
+        Omitir diagnóstico y empezar desde cero
+      </button>
     </div>
   );
 }

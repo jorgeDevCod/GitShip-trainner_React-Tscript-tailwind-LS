@@ -166,7 +166,7 @@ export default function ChallengePlayer({ challenge, onSolved, onNext, isLast }:
 
       <div className="grid gap-4 xl:grid-cols-[1.05fr_1fr]">
         {/* terminal */}
-        <div className="flex min-w-0 flex-col rounded-2xl border border-zinc-800 bg-[#0d1117]">
+        <div className="flex min-w-0 flex-col rounded-2xl border border-zinc-800 bg-terminal">
           <div className="flex items-center gap-1.5 border-b border-zinc-800/80 px-4 py-2.5">
             <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
             <span className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
