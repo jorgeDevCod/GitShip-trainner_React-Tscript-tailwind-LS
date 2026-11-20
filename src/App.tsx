@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import ChallengePlayer from './components/ChallengePlayer';
+import Logo from './components/Logo';
 import ThemeToggle from './components/ThemeToggle';
 import { Dashboard, Diagnostic, LabView, MentorMode, PathView, ProgressView, ReviewView } from './components/Views';
 import { CHALLENGES, DIAGNOSTIC } from './lib/curriculum';
@@ -95,7 +96,9 @@ export default function App() {
       {/* header */}
       <header className="sticky top-0 z-20 border-b border-zinc-800/80 bg-app/90 backdrop-blur">
         <div className="mx-auto flex max-w-[1400px] items-center gap-2 px-4 py-2.5 sm:px-6 lg:px-8">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-800 text-base">🚀</span>
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-800">
+            <Logo className="h-5 w-5" />
+          </span>
           <span className="font-extrabold text-white">GitShip</span>
           <span className="hidden rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400 sm:inline">{api.pct}%</span>
           <div className="ml-auto flex items-center gap-2">
@@ -123,6 +126,9 @@ export default function App() {
       {!api.state.diagnosticDone && !showDiag && view === 'inicio' && api.solvedCount === 0 && (
         <div className="mx-auto max-w-[1400px] px-4 pt-6 sm:px-6 lg:px-8">
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-center sm:p-8">
+            <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-800">
+              <Logo className="h-7 w-7" />
+            </span>
             <h1 className="fluid-h1 font-extrabold text-white">De git init al deploy, practicando.</h1>
             <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-400">
               Domina Git, GitHub/GitLab/Bitbucket, CI/CD y DevOps frontend resolviendo problemas reales: del primer commit al preview deploy.
